@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Paint Board</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #1e1e2f;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            padding: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #A1A1B5;
+        }
+        #paint-board {
+            background-color: #2b2b3d;
+            border-radius: 15px;
+            cursor: crosshair;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        #controls {
+            display: flex;
+            gap: 15px;
+        }
+        button {
+            background-color: #3f51b5;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        button i {
+            font-size: 20px;
+        }
+        button:hover {
+            background-color: #5c6bc0;
+            transform: translateY(-3px);
+        }
+        .erase-btn {
+            background-color: #2b2b3d;
+        }
+        .erase-btn:hover {
+            background-color: #2b2b3d;
+        }
+        .save-btn {
+            background-color: #2b2b3d;
+        }
+        .save-btn:hover {
+            background-color: #2b2b3d;
+        }
+        .undo-btn {
+            background-color: #2b2b3d;
+        }
+        .undo-btn:hover {
+            background-color: #2b2b3d;
+        }
+    </style>
+</head>
+<body>
+    <h2></h2>
+    <canvas id="paint-board" width="800" height="500"></canvas>
+    <div id="controls">
+        <button id="undo" class="undo-btn"><i class="fas fa-undo"></i> Back</button>
+        <button id="erase" class="erase-btn"><i class="fas fa-eraser"></i> Erase</button>
+        <button id="save" class="save-btn"><i class="fas fa-save"></i> Save</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('paint-board');
+        const ctx = canvas.getContext('2d');
+        const undoButton = document.getElementById('undo');
+        const eraseButton = document.getElementById('erase');
+        const saveButton = document.getElementById('save');
+
+        let drawing = false;
+        let lineWidth = 3;
+        const color = '#ffffff'; // Only paint with white
+        let paths = [];
+        let currentPath = [];
+
+        // Function to start drawing
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            currentPath = [];
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        // Function to draw on canvas
+        canvas.addEventListener('mousemove', (e) => {
+            if (drawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                ctx.stroke();
+                currentPath.push({ x: e.offsetX, y: e.offsetY });
+            }
+        });
+
+        // Stop drawing
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+            paths.push([...currentPath]);
+        });
+
+        // Undo button functionality
+        undoButton.addEventListener('click', () => {
+            paths.pop();
+            redraw();
+        });
+
+        // Clear the canvas
+        eraseButton.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            paths = [];
+        });
+
+        // Save the drawing as an image
+        saveButton.addEventListener('click', () => {
+            const dataURL = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = 'drawing.png';
+            a.click();
+        });
+
+        // Redraw the canvas with all saved paths
+        function redraw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            paths.forEach(path => {
+                ctx.beginPath();
+                path.forEach((point, index) => {
+                    if (index === 0) {
+                        ctx.moveTo(point.x, point.y);
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                });
+                ctx.stroke();
+            });
+        }
+    </script>
+</body>
+</html>
